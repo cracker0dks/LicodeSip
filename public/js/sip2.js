@@ -19,6 +19,8 @@ var callOptions = {
     video: false
   },
   'eventHandlers'    : ev2,
+  'RTCOfferConstraints': { mandatory: { OfferToReceiveAudio: true } },
+  pcConfig: {rtcpMuxPolicy: 'negotiate'}
 };
 
 var socket = new JsSIP.WebSocketInterface('wss://192.168.0.144:8089/ws');
@@ -28,7 +30,7 @@ var configuration = {
   password : 'asdg',
   realm : '192.168.0.144',
   //'session_timers': false,
-  contact_uri : "sip:199@192.168.0.144"
+  contact_uri : "sip:199@192.168.0.144",
 };
 
 var coolPhone = new JsSIP.UA(configuration);
