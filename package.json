@@ -1,0 +1,27 @@
+{
+  "name": "LicodeSip",
+  "version": "1.0.0",
+  "description": "Licode Sip Bridge",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"No tests needed!\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "webrtc",
+    "licode",
+    "sip"
+  ],
+  "dependencies": {
+    "express": "*",
+    "npm": "^5.8.0"
+  },
+  "author": "cracker0dks",
+  "license": "MIT"
+}
