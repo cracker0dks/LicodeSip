@@ -19,18 +19,17 @@ var callOptions = {
     video: false
   },
   'eventHandlers'    : ev2,
-  'RTCOfferConstraints': { mandatory: { OfferToReceiveAudio: true } },
   pcConfig: {rtcpMuxPolicy: 'negotiate'}
 };
 
-var socket = new JsSIP.WebSocketInterface('wss://192.168.0.144:8089/ws');
+var socket = new JsSIP.WebSocketInterface('wss://192.168.0.222:8089/ws');
 var configuration = {
   sockets  : [ socket ],
-  uri      : 'sip:199@192.168.0.144',
-  password : 'asdg',
-  realm : '192.168.0.144',
-  //'session_timers': false,
-  contact_uri : "sip:199@192.168.0.144",
+  uri      : 'sip:199@192.168.0.222',
+  password : '199',
+  realm : '192.168.0.222',
+  'session_timers': false,
+  contact_uri : "sip:199@192.168.0.222",
 };
 
 var coolPhone = new JsSIP.UA(configuration);
@@ -49,7 +48,7 @@ coolPhone.on('registrationFailed', function(e){
 	console.log("reg failed!");
 });
 
-
+var gainNode;
 coolPhone.on('newRTCSession', function(data){ 
 	console.log("newRTCSession");
 	var session = data.session; 
@@ -68,20 +67,38 @@ coolPhone.on('newRTCSession', function(data){
             // the call has ended
         });
         session.on("failed",function(e, e2){
-        	console.log("failed", e, e2);
+        	console.log("failed", e);
             // unable to establish the call
         });
-        session.on('addstream', function(e){
-            // set remote audio stream (to listen to remote audio)
-            // remoteAudio is <audio> element on page
-            remoteAudio = document.getElementById("remoteAudio");
-            remoteAudio.src = window.URL.createObjectURL(e.stream);
-            remoteAudio.play();
+        
+        session.on('addtrack', function(e){
+			console.log("addtrack", e)
+        });
+
+        session.on('onaddtrack', function(e){
+			console.log("1addtrack", e)
+        });
+
+        session.on('onaddstream', function(e){
+			console.log("1addtrack", e)
         });
         
         // Answer call
         session.answer(callOptions);
-        
+        session.connection.addEventListener('addstream', (e) =>
+		{
+			console.log("Debug: addstream............", e.stream);
+		
+			// remoteAudio = document.getElementById("remoteAudio");
+   // 			remoteAudio.src = window.URL.createObjectURL(e.stream);
+   // 			remoteAudio.play();
+   			window.AudioContext = window.AudioContext || window.webkitAudioContext;
+   			var audioContext = new AudioContext();
+   			var mediaStreamSource = audioContext.createMediaStreamSource( e.stream );
+   			mediaStreamSource.connect( audioContext.destination );
+   			
+		});
+
         // Reject call (or hang up it)
         //session.terminate();
     }

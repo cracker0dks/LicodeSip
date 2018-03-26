@@ -46,4 +46,6 @@ type=transport
 protocol=wss
 bind=0.0.0.0
 
-//Config sip.conf && extensions.conf as show in the files located by this tutorial
+//Config pjsip.conf && extensions.conf as show in the files located by this tutorial
+
+add: "noload => chan_sip.so" to modules.conf

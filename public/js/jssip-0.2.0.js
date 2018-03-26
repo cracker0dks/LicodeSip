@@ -25789,6 +25789,7 @@ module.exports = function(window, edgeVersion) {
     } else {
       pc._updateSignalingState('stable');
     }
+    console.log("<<")
     Object.keys(streams).forEach(function(sid) {
       var stream = streams[sid];
       if (stream.getTracks().length) {
@@ -26654,8 +26655,8 @@ var grammar = module.exports = {
       reg: /^group:(\w*) (.*)/,
       names: ['type', 'mids'],
       format: 'group:%s %s'
-    },a=rtcp-mux
-    { //
+    },
+    { //a=rtcp-mux
       name: 'rtcpMux',
       reg: /^(rtcp-mux)/
     },
