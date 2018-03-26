@@ -48,7 +48,7 @@ coolPhone.on('registrationFailed', function(e){
 	console.log("reg failed!");
 });
 
-var gainNode;
+var gloabalStream = null;
 coolPhone.on('newRTCSession', function(data){ 
 	console.log("newRTCSession");
 	var session = data.session; 
@@ -66,36 +66,35 @@ coolPhone.on('newRTCSession', function(data){
         	console.log("ended");
             // the call has ended
         });
-        session.on("failed",function(e, e2){
+        session.on("failed",function(e){
         	console.log("failed", e);
             // unable to establish the call
         });
-        
-        session.on('addtrack', function(e){
-			console.log("addtrack", e)
-        });
 
-        session.on('onaddtrack', function(e){
-			console.log("1addtrack", e)
-        });
-
-        session.on('onaddstream', function(e){
-			console.log("1addtrack", e)
-        });
-        
         // Answer call
         session.answer(callOptions);
+
         session.connection.addEventListener('addstream', (e) =>
 		{
+			gloabalStream = e.stream;
 			console.log("Debug: addstream............", e.stream);
-		
+
+			var config = {audio: true, video: false, data: false };
+    		getLocalStream(config, function(localStream) {
+    			//localStream.stream = e.stream;
+				publishLocalStream(localStream, roomname, null, function(ret) {
+					console.log(ret)
+				});
+			});
+
 			// remoteAudio = document.getElementById("remoteAudio");
    // 			remoteAudio.src = window.URL.createObjectURL(e.stream);
    // 			remoteAudio.play();
-   			window.AudioContext = window.AudioContext || window.webkitAudioContext;
-   			var audioContext = new AudioContext();
-   			var mediaStreamSource = audioContext.createMediaStreamSource( e.stream );
-   			mediaStreamSource.connect( audioContext.destination );
+
+   			// window.AudioContext = window.AudioContext || window.webkitAudioContext;
+   			// var audioContext = new AudioContext();
+   			// var mediaStreamSource = audioContext.createMediaStreamSource( e.stream );
+   			// mediaStreamSource.connect( audioContext.destination );
    			
 		});
 
