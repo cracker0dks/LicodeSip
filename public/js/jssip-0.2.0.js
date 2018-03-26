@@ -26654,8 +26654,8 @@ var grammar = module.exports = {
       reg: /^group:(\w*) (.*)/,
       names: ['type', 'mids'],
       format: 'group:%s %s'
-    },
-    { //a=rtcp-mux
+    },a=rtcp-mux
+    { //
       name: 'rtcpMux',
       reg: /^(rtcp-mux)/
     },
