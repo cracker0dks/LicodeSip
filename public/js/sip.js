@@ -1,20 +1,3 @@
-var ev2 = {
-  'progress': function(e) {
-    console.log('call is in progress');
-  },
-  'failed': function(e) {
-    console.log('call failed with cause: '+ e.data.cause);
-  },
-  'ended': function(e) {
-    console.log('call ended with cause: '+ e.data.cause);
-  },
-  'confirmed': function(e) {
-    console.log('call confirmed');
-  }
-};
-
-
-
 var socket = new JsSIP.WebSocketInterface('wss://192.168.0.222:8089/ws');
 var configuration = {
   sockets  : [ socket ],
@@ -45,7 +28,7 @@ var audioContext = new AudioContext();
 var answerLstream = audioContext.createMediaStreamDestination();
 var localLicodeStream;
 coolPhone.on('newRTCSession', function(data){ 
-	console.log("newRTCSession");
+	console.log("newRTCSession", data);
 	var session = data.session; 
 	if (session.direction === "incoming") {
         // incoming call here
@@ -66,23 +49,33 @@ coolPhone.on('newRTCSession', function(data){
             // unable to establish the call
         });
 
+        session.on("newDTMF",function(e, e1){
+        	console.log("newDTMF", e, e1);
+            // unable to establish the call
+        });
+
+
+
+        
+        // Answer call
+        session.answer(callOptions);
+
+
         var callOptions = {
 		  mediaConstraints: {
 		    audio: true, // only audio calls
 		    video: false
 		  },
-		  'eventHandlers'    : ev2,
 		  pcConfig: {rtcpMuxPolicy: 'negotiate'},
 		  mediaStream : answerLstream.stream
 		};
-        
-        // Answer call
-        session.answer(callOptions);
+
 
         session.connection.addEventListener('addstream', (e) =>
 		{
 			console.log("Debug: addstream............", e.stream);
-
+			console.log("Debug: roomname............", session["_request"]["headers"]["Roomnumber"]["0"]["raw"]);
+			
 			var config = {audio: true, video: false, data: false };
     		getLocalStream(config, function(localStream) {
     			localLicodeStream = localStream;
@@ -90,17 +83,7 @@ coolPhone.on('newRTCSession', function(data){
 				publishLocalStream(localStream, roomname, null, function(ret) {
 					console.log(ret)
 				});
-			});
-
-			// remoteAudio = document.getElementById("remoteAudio");
-   // 			remoteAudio.src = window.URL.createObjectURL(e.stream);
-   // 			remoteAudio.play();
-
-   			// window.AudioContext = window.AudioContext || window.webkitAudioContext;
-   			// var audioContext = new AudioContext();
-   			// var mediaStreamSource = audioContext.createMediaStreamSource( e.stream );
-   			// mediaStreamSource.connect( audioContext.destination );
-   			
+			});  			
 		});
 
         // Reject call (or hang up it)
