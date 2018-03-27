@@ -13,14 +13,7 @@ var ev2 = {
   }
 };
 
-var callOptions = {
-  mediaConstraints: {
-    audio: true, // only audio calls
-    video: false
-  },
-  'eventHandlers'    : ev2,
-  pcConfig: {rtcpMuxPolicy: 'negotiate'}
-};
+
 
 var socket = new JsSIP.WebSocketInterface('wss://192.168.0.222:8089/ws');
 var configuration = {
@@ -47,8 +40,10 @@ coolPhone.on('registered', function(e){
 coolPhone.on('registrationFailed', function(e){ 
 	console.log("reg failed!");
 });
-
-var gloabalStream = null;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioContext = new AudioContext(); 
+var answerLstream = audioContext.createMediaStreamDestination();
+var localStream;
 coolPhone.on('newRTCSession', function(data){ 
 	console.log("newRTCSession");
 	var session = data.session; 
@@ -71,12 +66,22 @@ coolPhone.on('newRTCSession', function(data){
             // unable to establish the call
         });
 
+        var callOptions = {
+		  mediaConstraints: {
+		    audio: true, // only audio calls
+		    video: false
+		  },
+		  'eventHandlers'    : ev2,
+		  pcConfig: {rtcpMuxPolicy: 'negotiate'},
+		  mediaStream : answerLstream.stream
+		};
+        
         // Answer call
         session.answer(callOptions);
 
         session.connection.addEventListener('addstream', (e) =>
 		{
-			gloabalStream = e.stream;
+			//gloabalStream = e.stream;
 			console.log("Debug: addstream............", e.stream);
 
 			var config = {audio: true, video: false, data: false };

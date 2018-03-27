@@ -14836,7 +14836,7 @@ module.exports = function (_EventEmitter) {
       }
 
       // Remove video from mediaStream if suggested by mediaConstraints.
-      if (mediaStream && mediaConstraints.video === false) {
+      if (mediaStream && mediaConstraints.video === false && typeof(mediaStream.getVideoTracks)==="function") {
         tracks = mediaStream.getVideoTracks();
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;

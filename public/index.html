@@ -33,8 +33,15 @@
             }, function(stream) { //streamSubscribed
               msg("streamSubscribed");
               if(stream.hasAudio()) { //Only audio streams
-                 $("#streamcontainer").append('<div id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
+                
+                //if(stream.getID() != localStream.getID())
+                
+                var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
+                mediaStreamSource.connect(answerLstream);
+
+                 $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
                  stream.show("audio" + stream.getID());
+                 $("audio, .audio").remove();
               }
             }, function(stream) { //streamRemovedCallback
               msg("streamRemovedCallback");

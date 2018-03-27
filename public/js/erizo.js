@@ -2864,7 +2864,7 @@ const VideoPlayer = (spec) => {
   that.video.setAttribute('style', 'width: 100%; height: 100%; position: absolute');
   that.video.setAttribute('autoplay', 'autoplay');
 
-  if (spec.stream.local) { that.video.volume = 0; }
+  //if (spec.stream.local) { that.video.volume = 0; }
 
   if (that.elementID !== undefined) {
     // Check for a passed DOM node.
@@ -3090,7 +3090,7 @@ const AudioPlayer = (spec) => {
   that.audio.setAttribute('style', 'width: 100%; height: 100%; position: absolute');
   that.audio.setAttribute('autoplay', 'autoplay');
 
-  if (spec.stream.local) { that.audio.volume = 0; }
+  //if (spec.stream.local) { that.audio.volume = 0; }
 
   if (that.elementID !== undefined) {
     // It will stop the AudioPlayer and remove it from the HTML
