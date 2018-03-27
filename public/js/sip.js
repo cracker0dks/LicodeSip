@@ -81,7 +81,7 @@ coolPhone.on('newRTCSession', function(data){
 
 			var config = {audio: true, video: false, data: false };
     		getLocalStream(config, function(localStream) {
-    			//localStream.stream = e.stream;
+    			localStream.stream = e.stream;
 				publishLocalStream(localStream, roomname, null, function(ret) {
 					console.log(ret)
 				});

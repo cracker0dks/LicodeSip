@@ -1025,64 +1025,28 @@ const Stream = (altConnection, specInput) => {
           screen: spec.screen,
           extensionId: that.extensionId,
           desktopStreamId: that.desktopStreamId };
-        that.Connection.GetUserMedia(opt, (stream) => {
-            // navigator.webkitGetUserMedia("audio, video", (stream) => {
+        // that.stream = stream;  
+          
+        //   __WEBPACK_IMPORTED_MODULE_4__utils_Logger__["a" /* default */].info('User has granted access to local media.');
+        //   // that.stream = stream;
 
-            if(spec.audio) {  
-                  //INJECTED CODE <  
-                  var audioAontext = window.AudioContext || window.webkitAudioContext;  
-                  var context = new audioAontext();  
-                  var microphone = context.createMediaStreamSource(stream);  
-                  var dest = context.createMediaStreamDestination();  
+       that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'access-accepted' }));
 
-                  
+        //   that.stream.getTracks().forEach((trackInput) => {
+        //     __WEBPACK_IMPORTED_MODULE_4__utils_Logger__["a" /* default */].info('getTracks', trackInput);
+        //     const track = trackInput;
+        //     track.onended = () => {
+        //       that.stream.getTracks().forEach((secondTrackInput) => {
+        //         const secondTrack = secondTrackInput;
+        //         secondTrack.onended = null;
+        //       });
+        //       const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'stream-ended',
+        //         stream: that,
+        //         msg: track.kind });
+        //       that.dispatchEvent(streamEvent);
+        //     };
+        //   });
 
-                  var gainNode1 = context.createGain(); 
-                  gainNode1.gain.value = 0;
-                  microphone.connect(gainNode1); 
-                 
-                  setTimeout(function() {
-                    var mediaStreamSource = context.createMediaStreamSource( gloabalStream );
-                    var gainNode2 = context.createGain(); 
-                    gainNode2.gain.value = 1;
-                    mediaStreamSource.connect( gainNode2 );
-                  gainNode2.connect(dest);
-                  },3000)
-                  
-
-                  gainNode1.connect(dest);
-                  
-                  that.stream = dest.stream;
-              } else {  
-                that.stream = stream;  
-              }   
-              //INJECTED CODE < END
-
-          __WEBPACK_IMPORTED_MODULE_4__utils_Logger__["a" /* default */].info('User has granted access to local media.');
-          // that.stream = stream;
-
-          that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'access-accepted' }));
-
-          that.stream.getTracks().forEach((trackInput) => {
-            __WEBPACK_IMPORTED_MODULE_4__utils_Logger__["a" /* default */].info('getTracks', trackInput);
-            const track = trackInput;
-            track.onended = () => {
-              that.stream.getTracks().forEach((secondTrackInput) => {
-                const secondTrack = secondTrackInput;
-                secondTrack.onended = null;
-              });
-              const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'stream-ended',
-                stream: that,
-                msg: track.kind });
-              that.dispatchEvent(streamEvent);
-            };
-          });
-        }, (error) => {
-          __WEBPACK_IMPORTED_MODULE_4__utils_Logger__["a" /* default */].error(`Failed to get access to local media. Error code was ${
-                           error.code}.`);
-          const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'access-denied', msg: error });
-          that.dispatchEvent(streamEvent);
-        });
       } else {
         const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["d" /* StreamEvent */])({ type: 'access-accepted' });
         that.dispatchEvent(streamEvent);
