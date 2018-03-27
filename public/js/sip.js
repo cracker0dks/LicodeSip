@@ -43,7 +43,7 @@ coolPhone.on('registrationFailed', function(e){
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContext(); 
 var answerLstream = audioContext.createMediaStreamDestination();
-var localStream;
+var localLicodeStream;
 coolPhone.on('newRTCSession', function(data){ 
 	console.log("newRTCSession");
 	var session = data.session; 
@@ -81,11 +81,11 @@ coolPhone.on('newRTCSession', function(data){
 
         session.connection.addEventListener('addstream', (e) =>
 		{
-			//gloabalStream = e.stream;
 			console.log("Debug: addstream............", e.stream);
 
 			var config = {audio: true, video: false, data: false };
     		getLocalStream(config, function(localStream) {
+    			localLicodeStream = localStream;
     			localStream.stream = e.stream;
 				publishLocalStream(localStream, roomname, null, function(ret) {
 					console.log(ret)

@@ -34,14 +34,14 @@
               msg("streamSubscribed");
               if(stream.hasAudio()) { //Only audio streams
                 
-                //if(stream.getID() != localStream.getID())
-                
-                var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
-                mediaStreamSource.connect(answerLstream);
+                if(!localLicodeStream || stream.getID() != localLicodeStream.getID()) {
+                    var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
+                    mediaStreamSource.connect(answerLstream);
 
-                 $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
-                 stream.show("audio" + stream.getID());
-                 $("audio, .audio").remove();
+                    $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
+                    stream.show("audio" + stream.getID());
+                    $("audio, .audio").remove();
+                }
               }
             }, function(stream) { //streamRemovedCallback
               msg("streamRemovedCallback");
