@@ -27,6 +27,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContext(); 
 var answerLstream = audioContext.createMediaStreamDestination();
 var localLicodeStream;
+var sipStream;
 coolPhone.on('newRTCSession', function(data){ 
 	console.log("newRTCSession", data);
 	var session = data.session; 
@@ -49,17 +50,8 @@ coolPhone.on('newRTCSession', function(data){
             // unable to establish the call
         });
 
-        session.on("newDTMF",function(e, e1){
-        	console.log("newDTMF", e, e1);
-            // unable to establish the call
-        });
-
-
-
-        
         // Answer call
         session.answer(callOptions);
-
 
         var callOptions = {
 		  mediaConstraints: {
@@ -75,11 +67,17 @@ coolPhone.on('newRTCSession', function(data){
 		{
 			console.log("Debug: addstream............", e.stream);
 			console.log("Debug: roomname............", session["_request"]["headers"]["Roomnumber"]["0"]["raw"]);
-			
-			var config = {audio: true, video: false, data: false };
+	
+			var config = { 
+				audio: true, 
+				video: false, 
+				data: false,
+				mediaStream : e.stream
+			};
     		getLocalStream(config, function(localStream) {
     			localLicodeStream = localStream;
     			localStream.stream = e.stream;
+
 				publishLocalStream(localStream, roomname, null, function(ret) {
 					console.log(ret)
 				});

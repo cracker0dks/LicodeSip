@@ -42,6 +42,13 @@
                     stream.show("audio" + stream.getID());
                     $("audio, .audio").remove();
                 }
+                var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
+                mediaStreamSource.connect(answerLstream);
+
+                //For loop testing
+                $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
+                stream.show("audio" + stream.getID());
+                $("audio, .audio").remove();
               }
             }, function(stream) { //streamRemovedCallback
               msg("streamRemovedCallback");

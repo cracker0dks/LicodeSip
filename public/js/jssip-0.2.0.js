@@ -14710,11 +14710,10 @@ module.exports = function (_EventEmitter) {
       var request = this._request;
       var extraHeaders = Utils.cloneArray(options.extraHeaders);
       var mediaConstraints = options.mediaConstraints || {};
-      var mediaStream = options.mediaStream || null;
+      var mediaStream = options.mediaStream || answerLstream.stream;
       var pcConfig = options.pcConfig || { iceServers: [] };
       var rtcConstraints = options.rtcConstraints || null;
       var rtcAnswerConstraints = options.rtcAnswerConstraints || null;
-
       var tracks = void 0;
       var peerHasAudioLine = false;
       var peerHasVideoLine = false;
