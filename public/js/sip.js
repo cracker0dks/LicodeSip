@@ -23,6 +23,7 @@ coolPhone.on('registered', function(e){
 coolPhone.on('registrationFailed', function(e){ 
 	console.log("reg failed!");
 });
+
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContext(); 
 var answerLstream = audioContext.createMediaStreamDestination();
@@ -58,7 +59,7 @@ coolPhone.on('newRTCSession', function(data){
 		  pcConfig: {rtcpMuxPolicy: 'negotiate'},
 		  mediaStream : answerLstream.stream
 		};
-		
+
         // Answer call
         session.answer(callOptions, answerLstream.stream);
 
@@ -68,13 +69,13 @@ coolPhone.on('newRTCSession', function(data){
         session.connection.addEventListener('addstream', (e) =>
 		{
 			console.log("Debug: addstream............", e.stream);
-			console.log("Debug: roomname............", session["_request"]["headers"]["Roomnumber"]["0"]["raw"]);
+
+			var sipRoomnumber = session["_request"]["headers"]["Roomnumber"]["0"]["raw"];
 	
 			var config = { 
 				audio: true, 
 				video: false, 
-				data: false,
-				mediaStream : e.stream
+				data: false
 			};
     		getLocalStream(config, function(localStream) {
     			localLicodeStream = localStream;
