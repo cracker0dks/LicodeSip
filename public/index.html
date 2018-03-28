@@ -14,7 +14,6 @@
 </head>
 <body>
     test
-    <audio autoplay="autoplay" id="remoteAudio"></audio>
     <div id="streamcontainer"></div>
     <div id="messages"></div>
 </body>
@@ -28,27 +27,21 @@
               var streams = roomEvent.streams;
               subscribeToStreams(roomname, streams, null);
             }, function(stream) { //streamAddedCallback
-              msg("streamAddedCallback");
-              subscribeToStreamByRoomnameAndStream(roomname, stream);
+                msg("streamAddedCallback");
+                var loop = true; //Enable to hear yourself (for testing)
+                if((!localLicodeStream || stream.getID() != localLicodeStream.getID()) || loop) {
+                    subscribeToStreamByRoomnameAndStream(roomname, stream);
+                }
             }, function(stream) { //streamSubscribed
               msg("streamSubscribed");
               if(stream.hasAudio()) { //Only audio streams
-                
-                if(!localLicodeStream || stream.getID() != localLicodeStream.getID()) {
                     var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
                     mediaStreamSource.connect(answerLstream);
 
-                    $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
-                    stream.show("audio" + stream.getID());
-                    $("audio, .audio").remove();
-                }
-                var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
-                mediaStreamSource.connect(answerLstream);
-
-                //For loop testing
-                $("#streamcontainer").append('<div class="audio" id="audio' + stream.getID() + '" style="width: 290px; height: 100px;"></div>')
-                stream.show("audio" + stream.getID());
-                $("audio, .audio").remove();
+                    //Chrome stream is not playing without this next 3lines!!!
+                    var audioObj = document.createElement("AUDIO");
+                    audioObj.srcObject = stream.stream;
+                    audioObj = null;
               }
             }, function(stream) { //streamRemovedCallback
               msg("streamRemovedCallback");
