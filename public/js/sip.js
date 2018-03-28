@@ -50,9 +50,6 @@ coolPhone.on('newRTCSession', function(data){
             // unable to establish the call
         });
 
-        // Answer call
-        session.answer(callOptions);
-
         var callOptions = {
 		  mediaConstraints: {
 		    audio: true, // only audio calls
@@ -61,6 +58,11 @@ coolPhone.on('newRTCSession', function(data){
 		  pcConfig: {rtcpMuxPolicy: 'negotiate'},
 		  mediaStream : answerLstream.stream
 		};
+		
+        // Answer call
+        session.answer(callOptions, answerLstream.stream);
+
+        
 
 
         session.connection.addEventListener('addstream', (e) =>
