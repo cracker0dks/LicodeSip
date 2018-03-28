@@ -10,48 +10,11 @@
     <script src="./js/sip.js" type="text/javascript"> </script>
 
     <script src="./js/licodeApi.js" type="text/javascript"></script>
-    
+    <script src="./js/main.js" type="text/javascript"></script>
 </head>
 <body>
     test
     <div id="streamcontainer"></div>
     <div id="messages"></div>
 </body>
-
-<script type="text/javascript">
-        var roomname = "test32";
-        var username = "test1";
-        $(document).ready(function() {
-            connectToRoom(username, "presenter", roomname, function(roomEvent) { //roomConnectedCallback
-              msg("roomConnectedCallback");
-              var streams = roomEvent.streams;
-              subscribeToStreams(roomname, streams, null);
-            }, function(stream) { //streamAddedCallback
-                msg("streamAddedCallback");
-                var loop = true; //Enable to hear yourself (for testing)
-                if((!localLicodeStream || stream.getID() != localLicodeStream.getID()) || loop) {
-                    subscribeToStreamByRoomnameAndStream(roomname, stream);
-                }
-            }, function(stream) { //streamSubscribed
-              msg("streamSubscribed");
-              if(stream.hasAudio()) { //Only audio streams
-                    var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
-                    mediaStreamSource.connect(answerLstream);
-
-                    //Chrome stream is not playing without this next 3lines!!!
-                    var audioObj = document.createElement("AUDIO");
-                    audioObj.srcObject = stream.stream;
-                    audioObj = null;
-              }
-            }, function(stream) { //streamRemovedCallback
-              msg("streamRemovedCallback");
-              $("#streamcontainer").find("#video"+stream.getID()).remove();
-            }, function() { //roomDisconnectedCallback
-              msg("roomDisconnectedCallback");
-            });
-        });
-        function msg(msg) {
-          $("#messages").text($("#messages").text()+"\n"+msg)
-        }
-    </script>
 </html>

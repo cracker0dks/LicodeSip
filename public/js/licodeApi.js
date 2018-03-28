@@ -1,7 +1,7 @@
 //Licode API
 
-var serverUrl = 'https://accelerator.reutlingen-university.de/socket/'; //default = '/socket/'
-var socketPath = '/socket/socket.io'; //default= '/socket/socket.io'
+var licodeServerUrl = 'https://192.168.0.222:3004/'; //default = '/socket/'
+var socketPath = '/socket.io'; //default= '/socket.io'
  //
 var rooms={};
 
@@ -34,8 +34,8 @@ function disconnectFromRoom(roomname) {
   rooms[roomname] = null;
 }
 
-function connectToRoom(username, role, roomname, roomConnectedCallback, streamAddedCallback, streamSubscribed, streamRemovedCallback, roomDisconnectedCallback) {
-  var roomData  = {username: username, role: role, room: roomname};
+function connectToRoom(username, role, roomname, sipNumber, roomConnectedCallback, streamAddedCallback, streamSubscribed, streamRemovedCallback, roomDisconnectedCallback) {
+  var roomData  = {username: username, role: role, room: roomname, sipNumber : sipNumber};
   createToken(roomData, function (response) {
     var token = response;
     rooms[roomname] = Erizo.Room({token: token});
@@ -86,7 +86,7 @@ function stopStream(roomname, username) {
 }
 
 function getAllRooms(callback) {
-  $.get( serverUrl+"getRooms/", function( data ) {
+  $.get( licodeServerUrl+"getRooms/", function( data ) {
     var allRooms = JSON.parse(data);
     callback(allRooms);
   });
@@ -145,7 +145,7 @@ function subscribeToStreams(roomname, streams, localStream){
 
 function createToken(body, callback) {
   var req = new XMLHttpRequest();
-  var url = serverUrl + 'createToken/';
+  var url = licodeServerUrl + 'createToken/';
 
   req.onreadystatechange = function () {
     if (req.readyState === 4) {
