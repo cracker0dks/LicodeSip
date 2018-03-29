@@ -36,21 +36,23 @@ if(withHeadlessBrowser) {
 	//Run a headless browser
 	var url = "https://127.0.0.1:"+PORT+"/";
 	(async () => {
-	  const browser = await puppeteer.launch({
-	  	"ignoreHTTPSErrors" : true,
-	  	args: ['--no-sandbox']
-	  });
-	  const page = await browser.newPage();
-	  page.on('console', msg => {
-		  for (let i = 0; i < msg.args().length; ++i) {
-		  	console.log(`${i}: ${msg.args()[i]}`);
-		  }
+		const browser = await puppeteer.launch({
+			"ignoreHTTPSErrors" : true,
+			args: ['--no-sandbox']
 		});
-	  await page.goto(url);
-	  await page.waitFor('#loadLicodeSipBridge'); //Do it like this because of Error otherwise: The AudioContext was not allowed to start. It must be resume (or created) after a user gesture on the page
-	  await page.click('body');
-	  await page.click('#loadLicodeSipBridge');
+		const page = await browser.newPage();
 
-	  //await browser.close();
+		//Enable for Browser debugging
+		// page.on('console', msg => {
+		// 	for (let i = 0; i < msg.args().length; ++i) {
+		// 	  	console.log(`${i}: ${msg.args()[i]}`);
+		// 	}
+		// });
+
+		await page.goto(url);
+		await page.waitFor('#loadLicodeSipBridge'); //Do it like this because of Error otherwise: The AudioContext was not allowed to start. It must be resume (or created) after a user gesture on the page
+		await page.click('body');
+		await page.click('#loadLicodeSipBridge');
+
 	})();
 }
