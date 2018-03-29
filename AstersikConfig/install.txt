@@ -1,3 +1,4 @@
+ASTERISK INSTALLATION GUIDE
 /* Debian 9 as root */
 apt-get install build-essential wget libssl-dev libncurses5-dev libnewt-dev libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev git subversion
 
@@ -49,3 +50,5 @@ bind=0.0.0.0
 //Config pjsip.conf && extensions.conf as show in the files located by this tutorial
 
 add: "noload => chan_sip.so" to modules.conf
+
+/etc/init.d/asterisk restart

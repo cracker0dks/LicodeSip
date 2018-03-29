@@ -11,7 +11,7 @@ var sipConfig = { //Account config for the SIP Server
 };
 licodeServerUrl = 'https://192.168.0.222:3004/'; //The Licode Server URL
 
-var loop = true; //For debugging set to true to hear yourself (echo)
+var loop = false; //For debugging set to true to hear yourself (echo)
 /* ---------------- */
 /* ---------------- */
 /* ---------------- */
