@@ -1,5 +1,5 @@
-var PORT = 8080;
-var withHeadlessBrowser = false;
+var PORT = 8083;
+var withHeadlessBrowser = true;
 var enableBrowserLogs = true;
 
 var https = require('https');
