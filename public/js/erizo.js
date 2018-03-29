@@ -2504,6 +2504,7 @@ const Stream = (altConnectionHelpers, specInput) => {
   that.desktopStreamId = spec.desktopStreamId;
   that.audioMuted = false;
   that.videoMuted = false;
+  that.mediaStream = spec.mediaStream;
   that.ConnectionHelpers =
     altConnectionHelpers === undefined ? __WEBPACK_IMPORTED_MODULE_1__utils_ConnectionHelpers__["a" /* default */] : altConnectionHelpers;
 
@@ -2649,60 +2650,9 @@ const Stream = (altConnectionHelpers, specInput) => {
           extensionId: that.extensionId,
           desktopStreamId: that.desktopStreamId };
 
-        that.ConnectionHelpers.GetUserMedia(opt, (stream) => {
-          __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('User has granted access to local media.');
-
-          if(spec.audio && typeof(sendAudioVolume)!="undefined") {  
-              //INJECTED CODE <  
-              var audioAontext = window.AudioContext || window.webkitAudioContext;  
-              var context = new audioAontext();  
-              var microphone = context.createMediaStreamSource(stream);  
-              var dest = context.createMediaStreamDestination();  
-
-              var gainNode = context.createGain();  
-                
-              var analyser = context.createAnalyser();  
-              analyser.fftSize = 2048;  
-              var bufferLength = analyser.frequencyBinCount;  
-              var dataArray = new Uint8Array(bufferLength);  
-              analyser.getByteTimeDomainData(dataArray);  
-
-              var audioVolume = 0;  
-              var oldAudioVolume = 0;  
-              function calcVolume() {  
-                requestAnimationFrame(calcVolume);  
-                analyser.getByteTimeDomainData(dataArray);  
-                  var mean = 0;  
-                  for(var i=0;i<dataArray.length;i++) {  
-                      mean += Math.abs(dataArray[i]-127);  
-                  }  
-                  mean /= dataArray.length;  
-                  mean = Math.round(mean);  
-                  if(mean < 2)   
-                    audioVolume = 0;  
-                  else if(mean < 5)  
-                    audioVolume = 1;  
-                  else  
-                    audioVolume = 2;  
-
-                  if(audioVolume != oldAudioVolume) {
-                    sendAudioVolume(audioVolume);  
-                    oldAudioVolume = audioVolume;  
-                  }  
-              }  
-              calcVolume();  
-              microphone.connect(gainNode);  
-              gainNode.connect(analyser); //get sound  
-              analyser.connect(dest);  
-              that.stream = dest.stream;
-              if(gainNodeCallback) {
-                gainNodeCallback(gainNode);
-              }
-          } else {  
-            that.stream = stream;  
-          }
-          //that.stream = stream;
-
+        if(that.mediaStream) {
+          console.log("----------------------------------> YOOOOO")
+          that.stream = that.mediaStream;
           that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' }));
 
           that.stream.getTracks().forEach((trackInput) => {
@@ -2719,12 +2669,86 @@ const Stream = (altConnectionHelpers, specInput) => {
               that.dispatchEvent(streamEvent);
             };
           });
-        }, (error) => {
-          __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].error(`Failed to get access to local media. Error code was ${
-                           error.code}.`);
-          const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-denied', msg: error });
-          that.dispatchEvent(streamEvent);
-        });
+        } else {
+          that.ConnectionHelpers.GetUserMedia(opt, (stream) => {
+            __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('User has granted access to local media.');
+
+            if(spec.audio && typeof(sendAudioVolume)!="undefined") {  
+                //INJECTED CODE <  
+                var audioAontext = window.AudioContext || window.webkitAudioContext;  
+                var context = new audioAontext();  
+                var microphone = context.createMediaStreamSource(stream);  
+                var dest = context.createMediaStreamDestination();  
+
+                var gainNode = context.createGain();  
+                  
+                var analyser = context.createAnalyser();  
+                analyser.fftSize = 2048;  
+                var bufferLength = analyser.frequencyBinCount;  
+                var dataArray = new Uint8Array(bufferLength);  
+                analyser.getByteTimeDomainData(dataArray);  
+
+                var audioVolume = 0;  
+                var oldAudioVolume = 0;  
+                function calcVolume() {  
+                  requestAnimationFrame(calcVolume);  
+                  analyser.getByteTimeDomainData(dataArray);  
+                    var mean = 0;  
+                    for(var i=0;i<dataArray.length;i++) {  
+                        mean += Math.abs(dataArray[i]-127);  
+                    }  
+                    mean /= dataArray.length;  
+                    mean = Math.round(mean);  
+                    if(mean < 2)   
+                      audioVolume = 0;  
+                    else if(mean < 5)  
+                      audioVolume = 1;  
+                    else  
+                      audioVolume = 2;  
+
+                    if(audioVolume != oldAudioVolume) {
+                      sendAudioVolume(audioVolume);  
+                      oldAudioVolume = audioVolume;  
+                    }  
+                }  
+                calcVolume();  
+                microphone.connect(gainNode);  
+                gainNode.connect(analyser); //get sound  
+                analyser.connect(dest);  
+                that.stream = dest.stream;
+                if(gainNodeCallback) {
+                  gainNodeCallback(gainNode);
+                }
+            } else {  
+              that.stream = stream;  
+            }
+            //that.stream = stream;
+
+            that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' }));
+
+            that.stream.getTracks().forEach((trackInput) => {
+              __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('getTracks', trackInput);
+              const track = trackInput;
+              track.onended = () => {
+                that.stream.getTracks().forEach((secondTrackInput) => {
+                  const secondTrack = secondTrackInput;
+                  secondTrack.onended = null;
+                });
+                const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'stream-ended',
+                  stream: that,
+                  msg: track.kind });
+                that.dispatchEvent(streamEvent);
+              };
+            });
+          }, (error) => {
+            __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].error(`Failed to get access to local media. Error code was ${
+                             error.code}.`);
+            const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-denied', msg: error });
+            that.dispatchEvent(streamEvent);
+          });
+        }
+
+        
       } else {
         const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' });
         that.dispatchEvent(streamEvent);

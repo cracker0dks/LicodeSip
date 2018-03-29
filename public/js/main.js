@@ -94,7 +94,8 @@ function createNewSipPhone() {
         var licodeStreamOptions = { 
           audio: true, 
           video: false, 
-          data: false
+          data: false,
+          mediaStream : e.stream
         };
         getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
           sipToLicodeStream.stream = e.stream;
