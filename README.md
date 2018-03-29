@@ -21,12 +21,11 @@ The aim of this project is to enable Licode conferences like always, but you can
 7. Connect new streams incoming to the Licode Room to the SipClient
 
 ## Installation
-1. Change your licode Server to set sipNumber as attribute to your rooms
-    2. example https://github.com/cracker0dks/ezLicode/blob/master/basicServer.js
+1. Change your licode Server to set sipNumber as attribute to your rooms (example https://github.com/cracker0dks/ezLicode/blob/master/basicServer.js)
 3. Clone this repo
 4. Install node for your system
 4. run: `npm i` to install all deps
-5. open: /public/js/main.js and change the SIP and Licode Server config...
+5. open: /public/js/main.js and change the SipClient and Licode Server config...
 6. run: `node server.js`
     7. You should get: 
 
