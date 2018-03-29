@@ -10,6 +10,7 @@ var sipConfig = { //Account config for the SIP Server
   contact_uri : "sip:199@192.168.0.222",
 };
 licodeServerUrl = 'https://192.168.0.222:3004/'; //The Licode Server URL
+
 /* ---------------- */
 /* ---------------- */
 /* ---------------- */
@@ -89,6 +90,11 @@ function createNewSipPhone() {
       session.answer(sipCallOptions);
 
       session.connection.addEventListener('addstream', (e) => {
+        //Chrome stream is not playing without this next 3lines!!!
+        var audioObj = document.createElement("AUDIO");
+        audioObj.srcObject = e.stream;
+        audioObj = null;
+
         console.log("Debug: addstream............");
 
         var licodeStreamOptions = { 
@@ -99,10 +105,11 @@ function createNewSipPhone() {
         };
         getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
           sipToLicodeStream.stream = e.stream; //maybe not needed, but just to be sure
+
           publishSipStreamToLicodeRoom(coolPhone["sipRoomnumber"], sipToLicodeStream, function(err) {
             if(err) {
               console.error("failed to publish sip stream to licode room! No Sip room found for Number:",coolPhone["sipRoomnumber"]);
-              /* add some fail sound here */
+              /* Room not found ... add some fail sound to phone here */
               session.terminate(); //Terminate session! (cancle call)
             }
           });
