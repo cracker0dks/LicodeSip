@@ -11,6 +11,7 @@ var sipConfig = { //Account config for the SIP Server
 };
 licodeServerUrl = 'https://192.168.0.222:3004/'; //The Licode Server URL
 
+var loop = true; //For debugging set to true to hear yourself (echo)
 /* ---------------- */
 /* ---------------- */
 /* ---------------- */
@@ -24,18 +25,15 @@ $(document).ready(function() {
   })
 });
 
+var sipPhones = [];
+var sipUserCnt = 0;
+var sipsInRoomsCnt = {};
+
 // Existing code unchanged.
 function loadLicodeSipBridge() {
 
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   var audioContext = new AudioContext(); 
-
-  var sipPhones = [];
-  var sipUserCnt = 0;
-
-  var answerLstream 
-  var localLicodeStream;
-  var sipStream;
 
   function createNewSipPhone() {
     var phoneLength = sipPhones.length;
@@ -80,6 +78,11 @@ function loadLicodeSipBridge() {
         session.on("ended",function(){ // the call has ended
           console.log("ended");
           coolPhone["activeCall"] = false;
+          sipsInRoomsCnt[coolPhone["sipRoomnumber"]]--;
+          if(sipsInRoomsCnt[coolPhone["sipRoomnumber"]]<=0) {
+            removeLicodeRoomBySipRoomnumber(coolPhone["sipRoomnumber"]);
+            sipsInRoomsCnt[coolPhone["sipRoomnumber"]] = 0;
+          }
         });
         session.on("failed",function(e){ // unable to establish the call
           console.log("failed", e);
@@ -100,7 +103,6 @@ function loadLicodeSipBridge() {
 
         session.connection.addEventListener('addstream', (e) => {
           
-
           console.log("Debug: addstream............");
 
           var licodeStreamOptions = { 
@@ -110,24 +112,13 @@ function loadLicodeSipBridge() {
             mediaStream : e.stream
           };
           getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
-
             publishSipStreamToLicodeRoom(coolPhone["sipRoomnumber"], sipToLicodeStream, function(err) {
               if(err) {
                 console.error("failed to publish sip stream to licode room! No Sip room found for Number:",coolPhone["sipRoomnumber"]);
                 /* Room not found ... add some fail sound to phone here */
                 session.terminate(); //Terminate session! (cancle call)
               }
-
-              // var audio = new Audio();                                                  
-              //  audio.src = (URL || webkitURL || mozURL).createObjectURL(ipToLicodeStream.stream);
-              //  audio.play();
-              //Chrome stream is not playing without this next 3lines!!!
-              // var audioObj = document.createElement("AUDIO");
-              // audioObj.srcObject = sipToLicodeStream.stream;
-              // audioObj = null;
-
             });
-            
           });       
         });
       }
@@ -138,6 +129,16 @@ function loadLicodeSipBridge() {
   }
   createNewSipPhone();
 
+  function removeLicodeRoomBySipRoomnumber(sipRoomnumber) {
+    getAlllicodeRooms(function(rooms) {
+      for(var i=0;i<rooms.length;i++) {
+        if(rooms[i]["data"]["sipNumber"] == sipRoomnumber) { //Room found
+          disconnectFromRoom(rooms[i]["name"]);
+        }
+      }
+    });
+  }
+
   function publishSipStreamToLicodeRoom(sipRoomnumber, sipTolicodeStream, callback) {
     for(var i in licodeRooms) {
       if(licodeRooms[i]["sipNumber"] == sipRoomnumber) {
@@ -145,6 +146,8 @@ function loadLicodeSipBridge() {
           console.log("Published sipTolicodeStream!", ret)
           callback(false);
         });
+
+        sipsInRoomsCnt[sipRoomnumber]++;
         return;
       }
     }
@@ -159,8 +162,9 @@ function loadLicodeSipBridge() {
           (function() {
             var roomname = rooms[i]["name"];
             connectToRoom("sipuser"+(++sipUserCnt), "presenter", roomname, sipRoomnumber, function(roomEvent) { //roomConnectedCallback
-
               msg("roomConnectedCallback");
+              sipsInRoomsCnt[sipRoomnumber] = 1;
+
               var streams = roomEvent.streams;
               subscribeToStreams(roomname, streams, null); //Connect to streams already in room
 
@@ -190,7 +194,6 @@ function loadLicodeSipBridge() {
                       }
                     }
                     if(!streamConnected) { //Stream not (yet) connected
-                      var loop = true; //For debugging set to true to hear yourself
                       if(loop || sipTolicodeStream.getID() != stream.getID()) {
                         var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
                         mediaStreamSource.connect(sipPhones[i]["licodeToSipStream"]);
@@ -207,7 +210,6 @@ function loadLicodeSipBridge() {
             }, function(stream) { //streamRemovedCallback
               msg("streamRemovedCallback");
             }, function() { //roomDisconnectedCallback
-              delete licodeRoomStreams[sipRoomnumber];
               msg("roomDisconnectedCallback");
             });
           })();

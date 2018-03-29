@@ -31,7 +31,7 @@ function publishLocalStream(localStream, roomname, newMaxVideoBW, callback) {
 
 function disconnectFromRoom(roomname) {
   licodeRooms[roomname].disconnect();
-  licodeRooms[roomname] = null;
+  delete licodeRooms[roomname];
 }
 
 function connectToRoom(username, role, roomname, sipNumber, roomConnectedCallback, streamAddedCallback, streamSubscribed, streamRemovedCallback, roomDisconnectedCallback) {

@@ -1,5 +1,6 @@
 var PORT = 8080;
-var withHeadlessBrowser = true;
+var withHeadlessBrowser = false;
+var enableBrowserLogs = true;
 
 var https = require('https');
 var express = require('express');
@@ -42,17 +43,19 @@ if(withHeadlessBrowser) {
 		});
 		const page = await browser.newPage();
 
-		//Enable for Browser debugging
-		// page.on('console', msg => {
-		// 	for (let i = 0; i < msg.args().length; ++i) {
-		// 	  	console.log(`${i}: ${msg.args()[i]}`);
-		// 	}
-		// });
+		if(enableBrowserLogs) {
+			page.on('console', msg => {
+				for (let i = 0; i < msg.args().length; ++i) {
+				  	console.log(`${i}: ${msg.args()[i]}`);
+				}
+			});
+		}
 
 		await page.goto(url);
 		await page.waitFor('#loadLicodeSipBridge'); //Do it like this because of Error otherwise: The AudioContext was not allowed to start. It must be resume (or created) after a user gesture on the page
 		await page.click('body');
 		await page.click('#loadLicodeSipBridge');
 
+		console.log("Bridge Loaded!")
 	})();
 }
