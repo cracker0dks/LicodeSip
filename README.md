@@ -43,4 +43,5 @@ Now just call the "sipNumber" and be sure your bridge Sip client gets the number
 * Be sure a Licode Room with the correct sipNumber exist
     * Surf to https://yourLicodeServerIp:3004/getRooms for basic example to get all rooms with attributes
 * To debug the bridge you can also set "withHeadlessBrowser" (at server.js) to false, restart the server and surf with your chrome to https://yourBridgeServerIp:8083 also be sure to allow all selfSigned Certificates. Check the console for errors 
-* Be sure that the SIP Server is supporting Opus and RTC connections. To see a working configuration or host your own SIP Server, look at /AstersikConfig
+* Be sure that the SIP Server is supporting Websocket, Opus and RTC connections. To see a working configuration or host your own SIP Server, look at /AstersikConfig
+* Be sure to run pjsip on the SIP Server
