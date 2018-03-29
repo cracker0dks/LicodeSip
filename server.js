@@ -38,7 +38,7 @@ if(withHeadlessBrowser) {
 	(async () => {
 	  const browser = await puppeteer.launch({
 	  	"ignoreHTTPSErrors" : true,
-	  	//executablePath: "C:/Users/Cracker/Downloads/chromium-sync/chrome-win32/chrome.exe"
+	  	args: ['--no-sandbox']
 	  });
 	  const page = await browser.newPage();
 	  page.on('console', msg => {
