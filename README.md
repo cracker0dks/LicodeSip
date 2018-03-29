@@ -27,15 +27,15 @@ The aim of this project is to enable Licode conferences like always, but you can
 4. run: `npm i` to install all deps
 5. open: /public/js/main.js and change the SipClient and Licode Server config...
 6. run: `node server.js`
-    7. You should get: 
 
+You should get: 
 
 ```
 Server running on port: 8083
 0: JSHandle:connected!
 0: JSHandle:registered!
 ```
-This means the Bridge SIP Client connected correctly to your Sip Provider.
+This means the Bridge SipClient connected correctly to your Sip Provider (server).
 
 Now just call the "sipNumber" and be sure your bridge Sip client gets the number you set to the LicodeRoom from your SIP provider.
 
