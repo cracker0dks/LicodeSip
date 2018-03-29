@@ -4,7 +4,7 @@ The aim of this project is to enable Licode conferences like always, but you can
 ![asd](/doc/arch.png)
 
 ## Some Facts:
-1. This is still beta so do not run in production. Needs a lot more testing!
+1. This atm. a proof of concept and is still beta so do NOT run it in production. Needs a lot more testing!
 2. Bridge is not limitted to an amount of SIP Calls
 2. Called Number desides to witch Licode Room your Phone connects
 2. The bridge is working like a single SIP client and can be connected to any SIP Server supported by jssip: http://jssip.net/documentation/misc/interoperability/
