@@ -37,7 +37,8 @@ if(withHeadlessBrowser) {
 	var url = "https://127.0.0.1:"+PORT+"/";
 	(async () => {
 	  const browser = await puppeteer.launch({
-	  	"ignoreHTTPSErrors" : true
+	  	"ignoreHTTPSErrors" : true,
+	  	//executablePath: "C:/Users/Cracker/Downloads/chromium-sync/chrome-win32/chrome.exe"
 	  });
 	  const page = await browser.newPage();
 	  page.on('console', msg => {
@@ -46,6 +47,9 @@ if(withHeadlessBrowser) {
 		  }
 		});
 	  await page.goto(url);
+	  await page.waitFor('#loadLicodeSipBridge'); //Do it like this because of Error otherwise: The AudioContext was not allowed to start. It must be resume (or created) after a user gesture on the page
+	  await page.click('body');
+	  await page.click('#loadLicodeSipBridge');
 
 	  //await browser.close();
 	})();
