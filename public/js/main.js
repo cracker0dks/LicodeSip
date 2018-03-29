@@ -98,7 +98,7 @@ function createNewSipPhone() {
           mediaStream : e.stream
         };
         getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
-          sipToLicodeStream.stream = e.stream;
+          sipToLicodeStream.stream = e.stream; //maybe not needed, but just to be sure
           publishSipStreamToLicodeRoom(coolPhone["sipRoomnumber"], sipToLicodeStream, function(err) {
             if(err) {
               console.error("failed to publish sip stream to licode room! No Sip room found for Number:",coolPhone["sipRoomnumber"]);
@@ -169,7 +169,7 @@ function publishSipStreamToLicodeRoom(sipRoomnumber, sipTolicodeStream, callback
                     }
                   }
                   if(!streamConnected) { //Stream not (yet) connected
-                    var loop = false; //For debugging set to true to hear yourself
+                    var loop = true; //For debugging set to true to hear yourself
                     if(loop || sipTolicodeStream.getID() != stream.getID()) {
                       var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
                       mediaStreamSource.connect(sipPhones[i]["licodeToSipStream"]);
@@ -197,5 +197,5 @@ function publishSipStreamToLicodeRoom(sipRoomnumber, sipTolicodeStream, callback
 }
 
 function msg(msg) {
-  $("#messages").text($("#messages").text()+"\n"+msg)
+  console.log(msg);
 }

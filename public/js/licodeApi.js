@@ -81,7 +81,6 @@ function stopStream(roomname, username) {
   getStream(roomname, username, function(stream) {
     if(stream) {
       licodeRooms[roomname].unsubscribe(stream);
-      $('#video' +stream.getID()).remove();
     }
   });
 }

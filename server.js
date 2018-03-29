@@ -1,8 +1,10 @@
 var PORT = 8080;
+var withHeadlessBrowser = true;
 
 var https = require('https');
 var express = require('express');
 var fs = require("fs");
+const puppeteer = require('puppeteer');
 
 var app = express();
 
@@ -29,3 +31,23 @@ var server = https.createServer({
 }, app).listen(PORT);
 
 console.log("Server running on port:", PORT);
+
+if(withHeadlessBrowser) {
+	//Run a headless browser
+	var url = "https://127.0.0.1:"+PORT+"/";
+	(async () => {
+	  const browser = await puppeteer.launch({
+	  	"ignoreHTTPSErrors" : true,
+	  	executablePath: "C:/Users/Cracker/Downloads/chromium-sync/chrome-win32/chrome.exe"
+	  });
+	  const page = await browser.newPage();
+	 //  page.on('console', msg => {
+		//   for (let i = 0; i < msg.args().length; ++i) {
+		//   	console.log(`${i}: ${msg.args()[i]}`);
+		//   }
+		// });
+	  await page.goto(url);
+	  
+	  //await browser.close();
+	})();
+}
