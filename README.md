@@ -37,6 +37,8 @@ Server running on port: 8083
 ```
 This means the Bridge SipClient connected correctly to your Sip Provider (server).
 
+Configure the SIP Server to set the correct SIP header variable "roomnumber" take a look at this example (At line 6): [extensions.conf](/AstersikConfig/extensions.conf)
+
 Now just call the "sipNumber" and be sure your bridge Sip client gets the number you set to the LicodeRoom from your SIP provider.
 
 ## Troubleshooting
@@ -45,4 +47,3 @@ Now just call the "sipNumber" and be sure your bridge Sip client gets the number
 * To debug the bridge you can also set "withHeadlessBrowser" (at server.js) to false, restart the server and surf with your chrome to https://yourBridgeServerIp:8083 also be sure to allow all selfSigned Certificates. Check the console for errors 
 * Be sure that the SIP Server is supporting Websocket, Opus and RTC connections. To see a working configuration or host your own SIP Server, look at /AstersikConfig
 * Be sure to run pjsip on the SIP Server
-* Be sure the SIP Server is setting the correct SIP header variable "roomnumber" take a look at this example: [extensions.conf](/AstersikConfig/extensions.conf)
