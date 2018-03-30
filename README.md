@@ -13,7 +13,7 @@ The aim of this project is to enable Licode conferences like always, but you can
 ## Flow of the Application
 1. Bridge register on the SIP Server as normal SipClient
 2. Phone calls SIP Server with a number like "1234567656" (Must be equal to a sipNumber from a room on the Licode Server)
-2. SIP Server redirects call to the SIP client started by this bridge
+2. SIP Server redirects call to the SIP client started by this bridge (And sets a SIP header var for the client)
 3. Bridge search for a LicodeRoom with the attribute: sipNumber = 1234567656
 4. Only go on if room with sipNumber exist
 5. Connect all streams from the Licode Room to the SipClient
@@ -45,3 +45,4 @@ Now just call the "sipNumber" and be sure your bridge Sip client gets the number
 * To debug the bridge you can also set "withHeadlessBrowser" (at server.js) to false, restart the server and surf with your chrome to https://yourBridgeServerIp:8083 also be sure to allow all selfSigned Certificates. Check the console for errors 
 * Be sure that the SIP Server is supporting Websocket, Opus and RTC connections. To see a working configuration or host your own SIP Server, look at /AstersikConfig
 * Be sure to run pjsip on the SIP Server
+* Be sure the SIP Server is setting the correct SIP header variable "roomnumber" take a look at this example: [extensions.conf](/AstersikConfig/extensions.conf)
