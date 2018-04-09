@@ -25,7 +25,7 @@ The aim of this project is to enable Licode conferences like always, but you can
 3. Clone this repo
 4. Install node for your system
 4. run: `npm i` to install all deps
-5. open: /public/js/main.js and change the SipClient and Licode Server config...
+5. open: /public/js/config.js and change the SipClient and Licode Server config...
 6. run: `node server.js`
 
 You should get: 

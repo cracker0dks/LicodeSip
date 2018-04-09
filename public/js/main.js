@@ -1,21 +1,3 @@
-/* ---------------- */
-/* ---- CONFIG ---- */
-/* ---------------- */
-var WebSocketInterface = 'wss://192.168.0.222:8089/ws'; //Websocket of your SIP Server
-var sipConfig = { //Account config for the SIP Server
-  uri      : 'sip:199@192.168.0.222',
-  password : '199',
-  realm : '192.168.0.222',
-  'session_timers': false,
-  contact_uri : "sip:199@192.168.0.222",
-};
-licodeServerUrl = 'https://192.168.0.222:3004/'; //The Licode Server URL
-
-var loop = false; //For debugging set to true to hear yourself (echo)
-/* ---------------- */
-/* ---------------- */
-/* ---------------- */
-
 var socket = new JsSIP.WebSocketInterface(WebSocketInterface);
 sipConfig["sockets"] = [ socket ];
 
