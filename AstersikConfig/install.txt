@@ -1,36 +1,28 @@
 ASTERISK INSTALLATION GUIDE
 /* Debian 9 as root */
-apt-get install build-essential wget libssl-dev libncurses5-dev libnewt-dev libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev git subversion
-
 cd /home
-wget downloads.asterisk.org/pub/telephony/asterisk/asterisk-15-current.tar.gz
-tar zxvf asterisk-15-current.tar.gz
 
-cd asterisk-15*
+apt-get update && apt-get install build-essential nano wget libssl-dev libncurses5-dev libnewt-dev libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev git subversion -y
+
+wget downloads.asterisk.org/pub/telephony/asterisk/asterisk-15-current.tar.gz && tar zxvf asterisk-15-current.tar.gz
+
+cd asterisk-15.*
 
 git clone git://github.com/asterisk/pjproject pjproject
 cd pjproject
-./configure --prefix=/usr --enable-shared --disable-sound --disable-resample --disable-video --disable-opencore-amr CFLAGS='-O2 -DNDEBUG'
-make dep && make && make install && ldconfig && ldconfig -p |grep pj
+./configure --prefix=/usr --enable-shared --disable-sound --disable-resample --disable-video --disable-opencore-amr CFLAGS='-O2 -DNDEBUG' && make dep && make && make install && ldconfig && ldconfig -p |grep pj
 
 cd ..
-contrib/scripts/get_mp3_source.sh
-contrib/scripts/install_prereq install
-./configure && make menuselect
+contrib/scripts/get_mp3_source.sh && contrib/scripts/install_prereq install && ./configure && make menuselect
 
 //Enable opus at  "Codec Translators" > "External"
 
-make && make install
-
-make samples
-
-make config
-ldconfig
+make && make install && make samples && make config && ldconfig
 
 /etc/init.d/asterisk start
 
 mkdir /etc/asterisk/keys
-./ast_tls_cert -C pbx.example.com -O "My Super Company" -d /etc/asterisk/keys
+./contrib/scripts/ast_tls_cert -C pbx.example.com -O "My Super Company" -d /etc/asterisk/keys
 
 //Config /etc/asterisk/http.conf
 [general]
@@ -41,14 +33,15 @@ tlsenable=yes
 tlsbindaddr=0.0.0.0:8089
 tlscertfile=/etc/asterisk/keys/asterisk.pem
 
-//Config /etc/asterisk/pjsip.conf
-[transport-wss]
-type=transport
-protocol=wss
-bind=0.0.0.0
-
 //Config pjsip.conf && extensions.conf as show in the files located by this tutorial
 
-add: "noload => chan_sip.so" to modules.conf
+add: "noload => chan_sip.so" to /etc/asterisk/modules.conf
 
 /etc/init.d/asterisk restart
+
+//----------------- Optional install Google tts ---------------------
+apt install mpg123 sox libwww-perl -y
+
+git clone git://github.com/zaf/asterisk-googletts
+
+cp asterisk-googletts/googletts.agi /var/lib/asterisk/agi-bin/
