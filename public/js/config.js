@@ -10,6 +10,7 @@ var sipConfig = { //Account config for the SIP Server
   contact_uri : "sip:licodebridge@192.168.0.222",
 };
 licodeServerUrl = 'https://192.168.0.222:3004/'; //The Licode Server URL
+socketPath = '/socket.io'; //default= '/socket.io' (Licode socket path)
 
 var loop = false; //For debugging set to true to hear yourself (echo)
 /* ---------------- */
