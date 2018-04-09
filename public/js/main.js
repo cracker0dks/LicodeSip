@@ -91,7 +91,8 @@ function loadLicodeSipBridge() {
             audio: true, 
             video: false, 
             data: false,
-            mediaStream : e.stream
+            mediaStream : e.stream,
+            attributes: {sipstream:true}
           };
           getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
             publishSipStreamToLicodeRoom(coolPhone["sipRoomnumber"], sipToLicodeStream, function(err) {
