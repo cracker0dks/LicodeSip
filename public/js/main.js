@@ -178,6 +178,7 @@ function loadLicodeSipBridge() {
                     }
                     if(!streamConnected) { //Stream not (yet) connected
                       if(loop || sipTolicodeStream.getID() != stream.getID()) {
+                        sipPhones[i]["connectedLicodeStreams"].push(stream.getID());
                         var mediaStreamSource = audioContext.createMediaStreamSource( stream.stream );
                         mediaStreamSource.connect(sipPhones[i]["licodeToSipStream"]);
                         
