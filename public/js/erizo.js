@@ -743,6 +743,7 @@ const BaseStack = (specInput) => {
   let localSdp;
   let remoteSdp;
   let isNegotiating = false;
+  let latestSessionVersion = -1;
 
   __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].info('Starting Base stack', specBase);
 
@@ -817,7 +818,7 @@ const BaseStack = (specInput) => {
     }
   };
 
-  const setLocalDescForOffer = (isSubscribe, sessionDescription) => {
+  const setLocalDescForOffer = (isSubscribe, streamId, sessionDescription) => {
     localDesc = sessionDescription;
     if (!isSubscribe) {
       localDesc.sdp = that.enableSimulcast(localDesc.sdp);
@@ -830,7 +831,8 @@ const BaseStack = (specInput) => {
     specBase.callback({
       type: localDesc.type,
       sdp: localDesc.sdp,
-    });
+      config: { maxVideoBW: specBase.maxVideoBW },
+    }, streamId);
   };
 
   const setLocalDescForAnswerp2p = (sessionDescription) => {
@@ -864,13 +866,22 @@ const BaseStack = (specInput) => {
 
   const processAnswer = (message) => {
     const msg = message;
-    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].info('Set remote and local description');
-    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Remote Description', msg.sdp);
-    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Local Description', localDesc.sdp);
 
     remoteSdp = __WEBPACK_IMPORTED_MODULE_0__common_semanticSdp_SemanticSdp___default.a.SDPInfo.processString(msg.sdp);
+    const sessionVersion = remoteSdp && remoteSdp.origin && remoteSdp.origin.sessionVersion;
+    if (latestSessionVersion >= sessionVersion) {
+      return;
+    }
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].info('Set remote and local description');
+    latestSessionVersion = sessionVersion;
+
     __WEBPACK_IMPORTED_MODULE_1__utils_SdpHelpers__["a" /* default */].setMaxBW(remoteSdp, specBase);
+    that.setStartVideoBW(remoteSdp);
+    that.setHardMinVideoBW(remoteSdp);
+
     msg.sdp = remoteSdp.toString();
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Remote Description', msg.sdp);
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Local Description', localDesc.sdp);
     that.remoteSdp = remoteSdp;
 
     remoteDesc = msg;
@@ -891,7 +902,7 @@ const BaseStack = (specInput) => {
         isNegotiating = false;
         if (offerQueue.length > 0) {
           const args = offerQueue.pop();
-          that.createOffer(args[0], args[1]);
+          that.createOffer(args[0], args[1], args[2]);
         }
       }).catch(errorCallback.bind(null, 'processAnswer', undefined));
     }).catch(errorCallback.bind(null, 'processAnswer', undefined));
@@ -928,6 +939,16 @@ const BaseStack = (specInput) => {
   that.peerConnection.onicecandidate = onIceCandidate;
   // public functions
 
+  that.setStartVideoBW = (sdpInput) => {
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].error('startVideoBW not implemented for this browser');
+    return sdpInput;
+  };
+
+  that.setHardMinVideoBW = (sdpInput) => {
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].error('hardMinVideoBw not implemented for this browser');
+    return sdpInput;
+  };
+
   that.enableSimulcast = (sdpInput) => {
     __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].error('Simulcast not implemented');
     return sdpInput;
@@ -938,9 +959,11 @@ const BaseStack = (specInput) => {
     that.peerConnection.close();
   };
 
-  that.updateSpec = (configInput, callback = () => {}) => {
+  that.updateSpec = (configInput, streamId, callback = () => {}) => {
     const config = configInput;
-    if (config.maxVideoBW || config.maxAudioBW) {
+    const shouldApplyMaxVideoBWToSdp = specBase.p2p && config.maxVideoBW;
+    const shouldSendMaxVideoBWInOptions = !specBase.p2p && config.maxVideoBW;
+    if (shouldApplyMaxVideoBWToSdp || config.maxAudioBW) {
       if (config.maxVideoBW) {
         __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Maxvideo Requested:', config.maxVideoBW,
                                 'limit:', specBase.limitMaxVideoBW);
@@ -973,27 +996,31 @@ const BaseStack = (specInput) => {
             return that.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDesc));
           }).then(() => {
             specBase.remoteDescriptionSet = true;
-            specBase.callback({ type: 'updatestream', sdp: localDesc.sdp });
+            specBase.callback({ type: 'updatestream', sdp: localDesc.sdp }, streamId);
           }).catch(errorCallback.bind(null, 'updateSpec', callback));
       } else {
         __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Updating without SDP renegotiation, ' +
                      'newVideoBW:', specBase.maxVideoBW,
                      'newAudioBW:', specBase.maxAudioBW);
-        specBase.callback({ type: 'updatestream', sdp: localDesc.sdp });
+        specBase.callback({ type: 'updatestream', sdp: localDesc.sdp }, streamId);
       }
     }
-    if (config.minVideoBW || (config.slideShowMode !== undefined) ||
-            (config.muteStream !== undefined) || (config.qualityLayer !== undefined) ||
-            (config.video !== undefined)) {
+    if (shouldSendMaxVideoBWInOptions ||
+        config.minVideoBW ||
+        (config.slideShowMode !== undefined) ||
+        (config.muteStream !== undefined) ||
+        (config.qualityLayer !== undefined) ||
+        (config.video !== undefined)) {
+      __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('MaxVideoBW Changed to ', config.maxVideoBW);
       __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('MinVideo Changed to ', config.minVideoBW);
       __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('SlideShowMode Changed to ', config.slideShowMode);
       __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('muteStream changed to ', config.muteStream);
       __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Video Constraints', config.video);
-      specBase.callback({ type: 'updatestream', config });
+      specBase.callback({ type: 'updatestream', config }, streamId);
     }
   };
 
-  that.createOffer = (isSubscribe = false, forceOfferToReceive = false) => {
+  that.createOffer = (isSubscribe = false, forceOfferToReceive = false, streamId = '') => {
     if (!isSubscribe && !forceOfferToReceive) {
       that.mediaConstraints = {
         offerToReceiveVideo: false,
@@ -1001,13 +1028,13 @@ const BaseStack = (specInput) => {
       };
     }
     if (isNegotiating) {
-      offerQueue.push([isSubscribe, forceOfferToReceive]);
+      offerQueue.push([isSubscribe, forceOfferToReceive, streamId]);
       return;
     }
     isNegotiating = true;
-    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Creating offer', that.mediaConstraints);
+    __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug('Creating offer', that.mediaConstraints, streamId);
     that.peerConnection.createOffer(that.mediaConstraints)
-    .then(setLocalDescForOffer.bind(null, isSubscribe))
+    .then(setLocalDescForOffer.bind(null, isSubscribe, streamId))
     .catch(errorCallback.bind(null, 'Create Offer', undefined));
   };
 
@@ -1516,6 +1543,10 @@ class CodecInfo {
 
   getParams() {
     return this.params;
+  }
+
+  setParam(paramName, value) {
+    this.params[paramName] = value;
   }
 
   hasRTX() {
@@ -2432,6 +2463,9 @@ SdpHelpers.addSpatialLayer = (cname, msid, mslabel,
   `a=ssrc:${spatialLayerIdRtx} label:${label}\r\n`;
 
 SdpHelpers.setMaxBW = (sdp, spec) => {
+  if (!spec.p2p) {
+    return;
+  }
   if (spec.video && spec.maxVideoBW) {
     const video = sdp.getMedia('video');
     if (video) {
@@ -2456,6 +2490,16 @@ SdpHelpers.enableOpusNacks = (sdpInput) => {
   }
 
   return sdp;
+};
+
+SdpHelpers.setParamForCodecs = (sdpInfo, mediaType, paramName, value) => {
+  sdpInfo.medias.forEach((mediaInfo) => {
+    if (mediaInfo.id === mediaType) {
+      mediaInfo.codecs.forEach((codec) => {
+        codec.setParam(paramName, value);
+      });
+    }
+  });
 };
 
 /* harmony default export */ __webpack_exports__["a"] = (SdpHelpers);
@@ -2650,9 +2694,60 @@ const Stream = (altConnectionHelpers, specInput) => {
           extensionId: that.extensionId,
           desktopStreamId: that.desktopStreamId };
 
-        if(that.mediaStream) {
-          console.log("----------------------------------> YOOOOO")
-          that.stream = that.mediaStream;
+        that.ConnectionHelpers.GetUserMedia(opt, (stream) => {
+          __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('User has granted access to local media.');
+
+          if(spec.audio && typeof(sendAudioVolume)!="undefined") {  
+              //INJECTED CODE <  
+              var audioAontext = window.AudioContext || window.webkitAudioContext;  
+              var context = new audioAontext();  
+              var microphone = context.createMediaStreamSource(stream);  
+              var dest = context.createMediaStreamDestination();  
+
+              var gainNode = context.createGain();  
+                
+              var analyser = context.createAnalyser();  
+              analyser.fftSize = 2048;  
+              var bufferLength = analyser.frequencyBinCount;  
+              var dataArray = new Uint8Array(bufferLength);  
+              analyser.getByteTimeDomainData(dataArray);  
+
+              var audioVolume = 0;  
+              var oldAudioVolume = 0;  
+              function calcVolume() {  
+                requestAnimationFrame(calcVolume);  
+                analyser.getByteTimeDomainData(dataArray);  
+                  var mean = 0;  
+                  for(var i=0;i<dataArray.length;i++) {  
+                      mean += Math.abs(dataArray[i]-127);  
+                  }  
+                  mean /= dataArray.length;  
+                  mean = Math.round(mean);  
+                  if(mean < 2)   
+                    audioVolume = 0;  
+                  else if(mean < 5)  
+                    audioVolume = 1;  
+                  else  
+                    audioVolume = 2;  
+
+                  if(audioVolume != oldAudioVolume) {
+                    sendAudioVolume(audioVolume);  
+                    oldAudioVolume = audioVolume;  
+                  }  
+              }  
+              calcVolume();  
+              microphone.connect(gainNode);  
+              gainNode.connect(analyser); //get sound  
+              analyser.connect(dest);  
+              that.stream = dest.stream;
+              if(gainNodeCallback) {
+                gainNodeCallback(gainNode);
+              }
+          } else {  
+            that.stream = stream;  
+          }
+          //that.stream = stream;
+
           that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' }));
 
           that.stream.getTracks().forEach((trackInput) => {
@@ -2669,86 +2764,12 @@ const Stream = (altConnectionHelpers, specInput) => {
               that.dispatchEvent(streamEvent);
             };
           });
-        } else {
-          that.ConnectionHelpers.GetUserMedia(opt, (stream) => {
-            __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('User has granted access to local media.');
-
-            if(spec.audio && typeof(sendAudioVolume)!="undefined") {  
-                //INJECTED CODE <  
-                var audioAontext = window.AudioContext || window.webkitAudioContext;  
-                var context = new audioAontext();  
-                var microphone = context.createMediaStreamSource(stream);  
-                var dest = context.createMediaStreamDestination();  
-
-                var gainNode = context.createGain();  
-                  
-                var analyser = context.createAnalyser();  
-                analyser.fftSize = 2048;  
-                var bufferLength = analyser.frequencyBinCount;  
-                var dataArray = new Uint8Array(bufferLength);  
-                analyser.getByteTimeDomainData(dataArray);  
-
-                var audioVolume = 0;  
-                var oldAudioVolume = 0;  
-                function calcVolume() {  
-                  requestAnimationFrame(calcVolume);  
-                  analyser.getByteTimeDomainData(dataArray);  
-                    var mean = 0;  
-                    for(var i=0;i<dataArray.length;i++) {  
-                        mean += Math.abs(dataArray[i]-127);  
-                    }  
-                    mean /= dataArray.length;  
-                    mean = Math.round(mean);  
-                    if(mean < 2)   
-                      audioVolume = 0;  
-                    else if(mean < 5)  
-                      audioVolume = 1;  
-                    else  
-                      audioVolume = 2;  
-
-                    if(audioVolume != oldAudioVolume) {
-                      sendAudioVolume(audioVolume);  
-                      oldAudioVolume = audioVolume;  
-                    }  
-                }  
-                calcVolume();  
-                microphone.connect(gainNode);  
-                gainNode.connect(analyser); //get sound  
-                analyser.connect(dest);  
-                that.stream = dest.stream;
-                if(gainNodeCallback) {
-                  gainNodeCallback(gainNode);
-                }
-            } else {  
-              that.stream = stream;  
-            }
-            //that.stream = stream;
-
-            that.dispatchEvent(Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' }));
-
-            that.stream.getTracks().forEach((trackInput) => {
-              __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].info('getTracks', trackInput);
-              const track = trackInput;
-              track.onended = () => {
-                that.stream.getTracks().forEach((secondTrackInput) => {
-                  const secondTrack = secondTrackInput;
-                  secondTrack.onended = null;
-                });
-                const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'stream-ended',
-                  stream: that,
-                  msg: track.kind });
-                that.dispatchEvent(streamEvent);
-              };
-            });
-          }, (error) => {
-            __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].error(`Failed to get access to local media. Error code was ${
-                             error.code}.`);
-            const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-denied', msg: error });
-            that.dispatchEvent(streamEvent);
-          });
-        }
-
-        
+        }, (error) => {
+          __WEBPACK_IMPORTED_MODULE_5__utils_Logger__["a" /* default */].error(`Failed to get access to local media. Error code was ${
+                           error.code}.`);
+          const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-denied', msg: error });
+          that.dispatchEvent(streamEvent);
+        });
       } else {
         const streamEvent = Object(__WEBPACK_IMPORTED_MODULE_0__Events__["f" /* StreamEvent */])({ type: 'access-accepted' });
         that.dispatchEvent(streamEvent);
@@ -2920,7 +2941,7 @@ const Stream = (altConnectionHelpers, specInput) => {
     const config = { muteStream: { audio: that.audioMuted, video: that.videoMuted } };
     that.checkOptions(config, true);
     if (that.pc) {
-      that.pc.updateSpec(config, callback);
+      that.pc.updateSpec(config, that.getID(), callback);
     }
   };
 
@@ -2943,7 +2964,7 @@ const Stream = (altConnectionHelpers, specInput) => {
     }
     const config = { qualityLayer: { spatialLayer, temporalLayer } };
     that.checkOptions(config, true);
-    that.pc.updateSpec(config, callback);
+    that.pc.updateSpec(config, that.getID(), callback);
   };
 
   // eslint-disable-next-line no-underscore-dangle
@@ -2955,7 +2976,7 @@ const Stream = (altConnectionHelpers, specInput) => {
     }
     const config = { qualityLayer: { spatialLayer: -1, temporalLayer: -1 } };
     that.checkOptions(config, true);
-    that.pc.updateSpec(config, callback);
+    that.pc.updateSpec(config, that.getID(), callback);
   };
 
   const controlHandler = (handlersInput, publisherSideInput, enable) => {
@@ -2991,13 +3012,13 @@ const Stream = (altConnectionHelpers, specInput) => {
       if (that.local) {
         if (that.room.p2p) {
           for (let index = 0; index < that.pc.length; index += 1) {
-            that.pc[index].updateSpec(config, callback);
+            that.pc[index].updateSpec(config, that.getID(), callback);
           }
         } else {
-          that.pc.updateSpec(config, callback);
+          that.pc.updateSpec(config, that.getID(), callback);
         }
       } else {
-        that.pc.updateSpec(config, callback);
+        that.pc.updateSpec(config, that.getID(), callback);
       }
     } else {
       callback('This stream has no peerConnection attached, ignoring');
@@ -3301,6 +3322,7 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
       limitMaxAudioBW: spec.maxAudioBW,
       limitMaxVideoBW: spec.maxVideoBW,
       forceTurn: stream.forceTurn,
+      p2p: true,
     };
     return options;
   };
@@ -3346,12 +3368,12 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
 
   const getErizoConnectionOptions = (stream, options, isRemote) => {
     const connectionOpts = {
-      callback(message) {
-        __WEBPACK_IMPORTED_MODULE_7__utils_Logger__["a" /* default */].info('Sending message', message);
+      callback(message, streamId = stream.getID()) {
+        __WEBPACK_IMPORTED_MODULE_7__utils_Logger__["a" /* default */].info('Sending message', message, stream.getID(), streamId);
         socket.sendSDP('signaling_message', {
-          streamId: stream.getID(),
+          streamId,
           msg: message,
-          browser: stream.pc.browser }, undefined, () => {});
+          browser: stream.pc && stream.pc.browser }, undefined, () => {});
       },
       nop2p: true,
       audio: options.audio && stream.hasAudio(),
@@ -3362,9 +3384,13 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
       limitMaxVideoBW: spec.maxVideoBW,
       label: stream.getLabel(),
       iceServers: that.iceServers,
-      forceTurn: stream.forceTurn };
+      forceTurn: stream.forceTurn,
+      p2p: false,
+    };
     if (!isRemote) {
       connectionOpts.simulcast = options.simulcast;
+      connectionOpts.startVideoBW = options.startVideoBW;
+      connectionOpts.hardMinVideoBW = options.hardMinVideoBW;
     }
     return connectionOpts;
   };
@@ -3379,7 +3405,7 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
         onStreamFailed(stream);
       }
     });
-    stream.pc.createOffer(true);
+    stream.pc.createOffer(true, false, stream.getID());
   };
 
   const createLocalStreamErizoConnection = (streamInput, erizoId, options) => {
@@ -3393,7 +3419,7 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
       }
     });
     stream.pc.addStream(stream);
-    if (!options.createOffer) { stream.pc.createOffer(false, spec.singlePC); }
+    if (!options.createOffer) { stream.pc.createOffer(false, spec.singlePC, stream.getID()); }
   };
 
   // We receive an event with a new stream in the room.
@@ -3636,6 +3662,7 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
     __WEBPACK_IMPORTED_MODULE_7__utils_Logger__["a" /* default */].info('Publishing to Erizo Normally, is createOffer', options.createOffer);
     const constraints = createSdpConstraints('erizo', stream, options);
     constraints.minVideoBW = options.minVideoBW;
+    constraints.maxVideoBW = options.maxVideoBW;
     constraints.scheme = options.scheme;
 
     socket.sendSDP('publish', constraints, undefined, (id, erizoId, error) => {
@@ -3675,6 +3702,7 @@ const Room = (altIo, altConnectionHelpers, altConnectionManager, specInput) => {
     const constraint = { streamId: stream.getID(),
       audio: options.audio && stream.hasAudio(),
       video: getVideoConstraints(stream, options.video),
+      maxVideoBW: options.maxVideoBW,
       data: options.data && stream.hasData(),
       browser: that.ConnectionHelpers.getBrowser(),
       createOffer: options.createOffer,
@@ -4148,8 +4176,8 @@ class ErizoConnection extends EventEmitterConst {
     this.stack.close();
   }
 
-  createOffer(isSubscribe, forceOfferToReceive) {
-    this.stack.createOffer(isSubscribe, forceOfferToReceive);
+  createOffer(isSubscribe, forceOfferToReceive, streamId) {
+    this.stack.createOffer(isSubscribe, forceOfferToReceive, streamId);
   }
 
   addStream(stream) {
@@ -4181,8 +4209,8 @@ class ErizoConnection extends EventEmitterConst {
     this.stack.enableSimulcast(sdpInput);
   }
 
-  updateSpec(configInput, callback) {
-    this.stack.updateSpec(configInput, callback);
+  updateSpec(configInput, streamId, callback) {
+    this.stack.updateSpec(configInput, streamId, callback);
   }
 }
 
@@ -4313,6 +4341,20 @@ const ChromeStableStack = (specInput) => {
     }
     result += 'a=x-google-flag:conference\r\n';
     return sdp.replace(matchGroup[0], result);
+  };
+
+  that.setStartVideoBW = (sdpInfo) => {
+    if (spec.video && spec.startVideoBW) {
+      __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug(`startVideoBW requested: ${spec.startVideoBW}`);
+      __WEBPACK_IMPORTED_MODULE_1__utils_SdpHelpers__["a" /* default */].setParamForCodecs(sdpInfo, 'video', 'x-google-start-bitrate', spec.startVideoBW);
+    }
+  };
+
+  that.setHardMinVideoBW = (sdpInfo) => {
+    if (spec.video && spec.hardMinVideoBW) {
+      __WEBPACK_IMPORTED_MODULE_2__utils_Logger__["a" /* default */].debug(`hardMinVideoBW requested: ${spec.hardMinVideoBW}`);
+      __WEBPACK_IMPORTED_MODULE_1__utils_SdpHelpers__["a" /* default */].setParamForCodecs(sdpInfo, 'video', 'x-google-min-bitrate', spec.hardMinVideoBW);
+    }
   };
 
   return that;
@@ -5686,11 +5728,11 @@ const FirefoxStack = (specInput) => {
 
   const baseCreateOffer = that.createOffer;
 
-  that.createOffer = (isSubscribe) => {
+  that.createOffer = (isSubscribe, forceOfferToReceive = false, streamId = '') => {
     if (isSubscribe !== true) {
       enableSimulcast();
     }
-    baseCreateOffer(isSubscribe);
+    baseCreateOffer(isSubscribe, forceOfferToReceive, streamId);
   };
 
   return that;
