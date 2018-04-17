@@ -45,7 +45,9 @@ function loadLicodeSipBridge() {
 
     coolPhone.on('newRTCSession', function(data){
       var session = data.session;
-      coolPhone["sipRoomnumber"] = session["_request"]["headers"]["Roomnumber"]["0"]["raw"];  //Header was set at SIP Server, take a look at AsteriskConfig/extensions.conf
+      var dtmf_string = "";
+      var sessionStream = null;
+      coolPhone["sipRoomnumber"] = session["_request"]["headers"]["Roomnumber"] ? session["_request"]["headers"]["Roomnumber"]["0"]["raw"] : null;  //Check if header was set at SIP Server (Check AsteriskConfig/extensions.conf to see how its done)
       console.log("sipRoomnumber", coolPhone["sipRoomnumber"]);
 
       if (session.direction === "incoming") { // incoming call here
@@ -71,6 +73,21 @@ function loadLicodeSipBridge() {
           coolPhone["activeCall"] = false;
         });
 
+        session.on("newDTMF",function(data){
+          if(data["originator"]=="remote") { //DTMF from remote
+            var tone = data["dtmf"]["_tone"];
+            console.log("newDTMF",tone);
+            if(!coolPhone["sipRoomnumber"]) { //Only go on if sipRoomnumber was not set at header
+              dtmf_string = dtmf_string+""+tone;
+              if(dtmf_string.length>=6 || tone == "#") {
+                coolPhone["sipRoomnumber"] = dtmf_string.split("#")[0];
+                console.log("Roomnumber was set to:"+ coolPhone["sipRoomnumber"]);
+                addSipStreamToLicodeRoom(sessionStream);
+              }
+            }
+          }
+        });
+
         var sipCallOptions = {
           mediaConstraints: {
             audio: true, // only audio calls
@@ -87,11 +104,21 @@ function loadLicodeSipBridge() {
           
           console.log("Debug: addstream............");
 
+          if(coolPhone["sipRoomnumber"]) { //sipRoomnumber was set by header
+            addSipStreamToLicodeRoom(e.stream)
+          } else {
+            //No sipRoomnumber so add some sound here
+            console.log("Enter Roomnumber by DTMF now!");
+            sessionStream = e.stream;
+          }
+        });
+
+        function addSipStreamToLicodeRoom(stream) {
           var licodeStreamOptions = { 
             audio: true, 
             video: false, 
             data: false,
-            mediaStream : e.stream,
+            mediaStream : stream,
             attributes: {sipstream:true}
           };
           getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
@@ -102,8 +129,8 @@ function loadLicodeSipBridge() {
                 session.terminate(); //Terminate session! (cancle call)
               }
             });
-          });       
-        });
+          });     
+        }
       }
     });
     coolPhone.start();
