@@ -1,6 +1,9 @@
 var socket = new JsSIP.WebSocketInterface(WebSocketInterface);
 sipConfig["sockets"] = [ socket ];
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioContext = new AudioContext(); 
+
 $(document).ready(function() {
   $("#loadLicodeSipBridge").click(function() {
     loadLicodeSipBridge();
@@ -13,9 +16,6 @@ var sipsInRoomsCnt = {};
 
 // Existing code unchanged.
 function loadLicodeSipBridge() {
-
-  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-  var audioContext = new AudioContext(); 
 
   function createNewSipPhone() {
     var phoneLength = sipPhones.length;
@@ -93,8 +93,12 @@ function loadLicodeSipBridge() {
             audio: true, // only audio calls
             video: false
           },
-          pcConfig: {rtcpMuxPolicy: 'negotiate'},
-          mediaStream : coolPhone["licodeToSipStream"].stream
+          pcConfig: {
+            rtcpMuxPolicy: 'negotiate',
+            iceServers : ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]
+          },
+          mediaStream : coolPhone["licodeToSipStream"].stream,
+          iceServers : ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]
         };
 
         // Answer call
@@ -108,7 +112,8 @@ function loadLicodeSipBridge() {
             addSipStreamToLicodeRoom(e.stream)
           } else {
             //No sipRoomnumber so add some sound here
-            console.log("Enter Roomnumber by DTMF now!");
+            console.log("Waiting for roomnumber by DTMF!");
+            playAudioFileToStream("enternumber.mp3", coolPhone["licodeToSipStream"]); //Play Enter Roomnumber to phone
             sessionStream = e.stream;
           }
         });
@@ -124,9 +129,13 @@ function loadLicodeSipBridge() {
           getLocalStream(licodeStreamOptions, function(sipToLicodeStream) {
             publishSipStreamToLicodeRoom(coolPhone["sipRoomnumber"], sipToLicodeStream, function(err) {
               if(err) {
-                console.error("failed to publish sip stream to licode room! No Sip room found for Number:",coolPhone["sipRoomnumber"]);
-                /* Room not found ... add some fail sound to phone here */
-                session.terminate(); //Terminate session! (cancle call)
+                console.log("No Sip room found for Roomnumber:"+coolPhone["sipRoomnumber"]);
+                playAudioFileToStream("notexist.mp3", coolPhone["licodeToSipStream"]); //Play Room not found to phone
+                setTimeout(function() { //Wait 2sec for audio to be finished
+                  session.terminate(); //Terminate session! (cancle call)
+                }, 2000);
+              } else {
+                playAudioFileToStream("connected.mp3", coolPhone["licodeToSipStream"]); //Play "connected" to phone
               }
             });
           });     
