@@ -97,8 +97,7 @@ function loadLicodeSipBridge() {
             rtcpMuxPolicy: 'negotiate',
             iceServers : ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]
           },
-          mediaStream : coolPhone["licodeToSipStream"].stream,
-          iceServers : ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]
+          mediaStream : coolPhone["licodeToSipStream"].stream
         };
 
         // Answer call
