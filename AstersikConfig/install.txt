@@ -1,30 +1,26 @@
-ASTERISK INSTALLATION GUIDE
-/* Debian 9 as root */
+#!/bin/bash
+#ASTERISK INSTALLATION GUIDE
+#/* Debian 9 as root */
 cd /home
 
-apt-get update && apt-get install build-essential nano wget libssl-dev libncurses5-dev libnewt-dev libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev git subversion -y
-
-wget downloads.asterisk.org/pub/telephony/asterisk/asterisk-15-current.tar.gz && tar zxvf asterisk-15-current.tar.gz
-
-cd asterisk-15.*
-
-git clone git://github.com/asterisk/pjproject pjproject
-cd pjproject
-./configure --prefix=/usr --enable-shared --disable-sound --disable-resample --disable-video --disable-opencore-amr CFLAGS='-O2 -DNDEBUG' && make dep && make && make install && ldconfig && ldconfig -p |grep pj
-
-cd ..
+apt-get update && apt-get install build-essential nano wget libssl-dev libncurses5-dev libnewt-dev libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev git subversion -y &&\
+wget downloads.asterisk.org/pub/telephony/asterisk/asterisk-15-current.tar.gz &&\ 
+tar zxvf asterisk-15-current.tar.gz &&\
+cd asterisk-15.* && \
+git clone git://github.com/asterisk/pjproject pjproject && \
+cd pjproject && \
+./configure --prefix=/usr --enable-shared --disable-sound --disable-resample --disable-video --disable-opencore-amr CFLAGS='-O2 -DNDEBUG' && make dep && make && make install && ldconfig && ldconfig -p |grep pj && \
+cd .. &&\
 contrib/scripts/get_mp3_source.sh && contrib/scripts/install_prereq install && ./configure && make menuselect
 
-//Enable opus at  "Codec Translators" > "External"
+#//Enable opus at  "Codec Translators" > "External"
 
-make && make install && make samples && make config && ldconfig
-
-/etc/init.d/asterisk start
-
-mkdir /etc/asterisk/keys
+make && make install && make samples && make config && ldconfig &&\
+/etc/init.d/asterisk start && \
+mkdir /etc/asterisk/keys && \
 ./contrib/scripts/ast_tls_cert -C pbx.example.com -O "My Super Company" -d /etc/asterisk/keys
 
-//Config /etc/asterisk/http.conf
+#//Config /etc/asterisk/http.conf
 [general]
 enabled=yes
 bindaddr=0.0.0.0
@@ -40,8 +36,6 @@ add: "noload => chan_sip.so" to /etc/asterisk/modules.conf
 /etc/init.d/asterisk restart
 
 //----------------- Optional install Google tts ---------------------
-apt install mpg123 sox libwww-perl -y
-
-git clone git://github.com/zaf/asterisk-googletts
-
+apt install mpg123 sox libwww-perl -y && \
+git clone git://github.com/zaf/asterisk-googletts && \
 cp asterisk-googletts/googletts.agi /var/lib/asterisk/agi-bin/
