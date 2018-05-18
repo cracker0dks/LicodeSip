@@ -34,7 +34,7 @@ function disconnectFromRoom(roomname) {
   delete licodeRooms[roomname];
 }
 
-function connectToRoom(username, role, roomname, sipNumber, roomConnectedCallback, streamAddedCallback, streamSubscribed, streamRemovedCallback, roomDisconnectedCallback) {
+function connectToRoom(username, role, roomname, sipNumber, roomConnectedCallback, streamAddedCallback, streamSubscribed, streamRemovedCallback, roomDisconnectedCallback, streamFailedCallback) {
   var roomData  = {username: username, role: role, room: roomname, sipNumber : sipNumber};
   createToken(roomData, function (response) {
     var token = response;
@@ -52,10 +52,11 @@ function connectToRoom(username, role, roomname, sipNumber, roomConnectedCallbac
         console.log("Stream Removed",stream.getID());
       });
 
-    licodeRooms[roomname].addEventListener('stream-failed', function (){
+    licodeRooms[roomname].addEventListener('stream-failed', function (streamEvent){
       console.log('STREAM FAILED, DISCONNECTION');
-      licodeRooms[roomname].disconnect();
-      licodeRooms[roomname] = null;
+      if(streamFailedCallback) {
+        streamFailedCallback(streamEvent);
+      }
     });
 
     licodeRooms[roomname].addEventListener('room-connected', function (roomEvent) {
