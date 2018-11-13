@@ -1,4 +1,3 @@
-#!/bin/bash
 #ASTERISK INSTALLATION GUIDE
 #/* Debian 9 as root */
 cd /home
