@@ -7,7 +7,7 @@ This a proof of concept (atm) and still very beta so do NOT run it in production
 
 ## Some Facts:
 1. Bridge is not limitted to an amount of SIP Calls
-2. The bridge is working like multible SIP client and can be connected to any SIP Server supported by jssip: http://jssip.net/documentation/misc/interoperability/
+2. The bridge is working like multible SIP clients and can be connected to any SIP Server supported by jssip: http://jssip.net/documentation/misc/interoperability/
 3. Bridge using the chromium WebRTC stack and is running in a Headless browser
 
 ## Flow of the Application
