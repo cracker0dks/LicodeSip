@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "express": "*",
-    "npm": "^5.8.0",
+    "npm": "^6.13.4",
     "puppeteer": "^1.2.0"
   },
   "author": "cracker0dks",
